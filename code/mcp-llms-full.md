@@ -1,5 +1,12 @@
 # Example Clients
-Source: https://modelcontextprotocol.io/clients
+
+**Attribution:** This content is sourced from the Model Context Protocol documentation at https://modelcontextprotocol.io/clients and is licensed under the MIT License. Copyright (c) Model Context Protocol contributors.
+
+**Original Source:** https://modelcontextprotocol.io/clients  
+**Repository:** https://github.com/modelcontextprotocol/docs  
+**License:** MIT License
+
+---
 
 A list of applications that support MCP integrations
 
