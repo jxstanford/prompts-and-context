@@ -1,330 +1,528 @@
-# Claude Code Development Instructions
+# Claude.md - Production Development Guide
 
-## Project Discovery & Context Analysis
-**Always start by analyzing the existing project:**
-- Read `pyproject.toml`, `package.json`, `requirements.txt` to understand dependencies
-- Check `docker-compose.yml`, `Dockerfile` for service architecture
-- Review `.env.example`, `config/` for configuration patterns
-- Examine existing code structure and patterns
-- Look for `CLAUDE.md` or similar files with project-specific context
-- Identify project type: CLI tool, web API, ML pipeline, full-stack app, etc.
+## Mission Statement
+Build production software through disciplined, task-based development with continuous verification and zero tolerance for deviations from specifications.
 
-**Adapt architecture complexity to project scope:**
-- Simple scripts: minimal structure, focus on functionality
-- CLI tools: typer + rich, simple error handling
-- APIs: FastAPI + pydantic models, structured logging
-- ML projects: full pipeline separation, experiment tracking
-- Full-stack: clear frontend/backend boundaries
+---
 
-## Technology Stack Preferences
+## 🔍 Project Discovery Protocol
 
-**Python Core Stack:**
-- **Package Management**: uv for dependencies and virtual environments
-- **Task Coordination**: Makefiles for common workflows
-- **Documentation**: MkDocs + mkdocstrings for comprehensive docs
-- **Web APIs**: FastAPI + pydantic + httpx
-- **CLI**: typer + rich for user interaction
-- **Testing**: pytest + coverage, tox for multi-version (consider nox for complex environments)
-- **Code Quality**: ruff (linting/formatting) + mypy + deptry
-- **Data**: pandas (vectorized operations), polars for performance-critical
-- **HTTP**: httpx over requests
+### Always Start Here
+```bash
+# 1. Understand where you are
+pwd
+ls -la
+tree -L 2 -I 'node_modules|__pycache__|.git'
 
-**Multi-Language Support:**
-- **Frontend**: React + TypeScript, Vite for build tooling
-- **Containers**: Docker multi-stage builds, docker-compose for development
-- **Scripts**: bash for system automation, Python for data processing
-- **Shell Script Quality**: ShellCheck for static analysis, bats-core for unit testing
-- **Notebooks**: Jupyter for exploration, convert to modules for production
+# 2. Identify project type and tooling
+cat package.json 2>/dev/null          # Node.js project?
+cat pyproject.toml 2>/dev/null        # Python project?
+cat go.mod 2>/dev/null                # Go project?
+cat Cargo.toml 2>/dev/null            # Rust project?
+cat docker-compose.yml 2>/dev/null    # Services architecture?
 
-## Claude Code Tool Usage & Project Setup
-- **File Operations**: Direct file creation/editing for implementation
-- **Terminal**: Package installation, testing, running services, git operations
-- **Artifacts**: Documentation, architecture diagrams, code reviews, examples
-- **Directory Structure**: Create full project scaffolding upfront
-- **Environment Setup**: Use terminal for virtual environments, dependency installation
+# 3. Check for existing conventions
+cat README.md
+cat CONTRIBUTING.md 2>/dev/null
+cat .github/workflows/*.yml 2>/dev/null
+cat Makefile 2>/dev/null
 
-**CLAUDE.md File Management:**
-When starting work on a project, always manage CLAUDE.md files:
+# 4. Look for project-specific Claude instructions
+cat CLAUDE.md 2>/dev/null
+cat .claude/instructions.md 2>/dev/null
+```
 
-1. **Check for existing CLAUDE.md**:
-   ```bash
-   # Read existing CLAUDE.md if present
-   cat CLAUDE.md
-   ```
+### Project Context Management
 
-2. **Create or update project context**:
-   - **If no CLAUDE.md exists**: Create new CLAUDE.md with project-specific instructions
-   - **If CLAUDE.md exists**: Create CLAUDE.md.local to supplement existing instructions
-   - **Always ensure CLAUDE.md.local is in .gitignore**
+#### Check for Existing CLAUDE.md
+If found, respect existing team conventions. Create `CLAUDE.md.local` for additional context:
 
-3. **CLAUDE.md.local Template**:
-   ```markdown
-   # Project-Specific Context (Local)
-   
-   ## Project Analysis
-   - **Type**: [CLI/API/ML Pipeline/Full-Stack/etc.]
-   - **Stack**: [Key technologies discovered]
-   - **Architecture**: [Brief description of structure]
-   
-   ## Build & Test Commands
-   - **Install**: `uv sync` or discovered install command
-   - **Test**: `pytest` or discovered test command
-   - **Lint**: `ruff check` or discovered lint command
-   - **Build**: [Build command if applicable]
-   - **Run**: [Run command for development]
-   
-   ## Project-Specific Notes
-   - [Any unusual patterns or requirements]
-   - [Performance considerations]
-   - [Team conventions discovered]
-   - [Integration points]
-   
-   ## Recent Changes
-   - [Date]: [Significant change description]
-   ```
+```markdown
+# CLAUDE.md.local - Project-Specific Context
 
-4. **Merge Strategy for Existing CLAUDE.md**:
-   - Preserve existing team conventions and standards
-   - Add complementary instructions in CLAUDE.md.local
-   - Avoid conflicts with established patterns
-   - Focus on additions rather than replacements
+## Project Analysis
+- **Type**: [CLI/API/Web App/Library]
+- **Stack**: [Languages and frameworks found]
+- **Build Tool**: [npm/yarn/pnpm/pip/cargo/go]
+- **Test Runner**: [jest/pytest/go test]
 
-5. **Refresh Triggers**:
-   Update both CLAUDE.md and CLAUDE.md.local when:
-   - Major dependencies change
-   - New services/components added
-   - Build/test processes change
-   - Architecture evolves
-   - New team standards adopted
+## Commands Discovered
+- **Install**: [command]
+- **Test**: [command]
+- **Lint**: [command]
+- **Build**: [command]
+- **Run**: [command]
 
-## Performance-First Development Approach
-**Prioritize performance in:**
-- Data processing (vectorized pandas/polars over loops)
-- API endpoints (async/await, connection pooling)
-- ML inference pipelines (batching, caching)
-- Database queries (select only needed fields, proper indexing)
+## Patterns Observed
+- [Architecture patterns]
+- [File organization]
+- [Naming conventions]
+```
 
-**Performance vs Readability Balance:**
+**Always add CLAUDE.md.local to .gitignore**
+
+### Tool Selection Hierarchy
+1. **Use existing project tools** if found
+2. **Check team conventions** in CONTRIBUTING.md
+3. **Fall back to defaults** only when no preference exists
+
+#### Default Tool Preferences
+**Python**: uv → poetry → pip | pytest | ruff → black+flake8  
+**JavaScript**: pnpm → npm | vitest → jest | eslint+prettier  
+**TypeScript**: Same as JS + tsc for type checking  
+**Bash**: shellcheck for linting | bats for testing
+
+---
+
+## Core Philosophy
+
+### The Prime Directives
+1. **Think First, Code Second** - Always plan before implementing
+2. **One Task at a Time** - Complete vertically before moving horizontally  
+3. **Search Before Creating** - Existing code is your friend
+4. **Simple Beats Clever** - YAGNI, KISS, and boring solutions win
+5. **Tests Are Mandatory** - No exceptions, no "fix it later"
+
+### Engineering Principles
+
+#### YAGNI (You Aren't Gonna Need It)
+Only build what's required RIGHT NOW. If the test passes without it, you don't need it.
+
+#### KISS (Keep It Simple, Stupid)
+The best solution is the most boring solution. If you can't explain it in one sentence, it's too complex.
+
+#### The Rule of Three (DRY with Discipline)
+1. First occurrence: Write it
+2. Second occurrence: Copy it, note duplication
+3. Third occurrence: Extract to shared function
+
+#### Walking Skeleton (Incremental Development)
+Start with the thinnest working version. Add flesh incrementally. Always have something demonstrable.
+
+---
+
+## 📋 Task Management Protocol
+
+### Before You Start: Task Definition
+
+```markdown
+# Task: [Clear, specific title]
+
+## Current State
+- Existing files: [List from search]
+- Current functionality: [What works now]
+
+## Desired State  
+- Requirement: [Single specific need]
+- Success criteria: [Observable outcome]
+
+## Scope
+IN: [What to build]
+OUT: [What to ignore]
+
+## Implementation Plan
+1. [ ] Search existing code
+2. [ ] Identify files to modify
+3. [ ] Write simplest solution
+4. [ ] Add tests
+5. [ ] Verify all tests pass
+6. [ ] Check lint/format
+7. [ ] Review changes
+
+## Complexity: [Low/Medium/High]
+If High → STOP and decompose
+```
+
+### Task Execution Rules
+
+#### 1. One Task at a Time
+- No parallel work
+- No "while I'm here" improvements  
+- Complete current task fully before next
+
+#### 2. Vertical Slices Only
+```
+✅ Correct: UI → API → DB for one feature
+❌ Wrong: All controllers, then all services
+```
+
+#### 3. Checkpoint Every 30 Minutes
+```bash
+pwd                    # Verify location
+git status            # Check changes  
+npm test              # Or project test command
+# Am I still on task?
+```
+
+### Task Completion Gate
+
+A task is ONLY complete when:
+- ✅ Original requirement met (nothing more)
+- ✅ Tests written and passing
+- ✅ Lint/format passing  
+- ✅ No temporary files
+- ✅ Git diff reviewed
+- ✅ Scope maintained
+
+---
+
+## 🚫 Antipattern Prevention
+
+### Context Loss Prevention
+```bash
+# Start every task with:
+pwd
+ls -la
+git status
+
+# Every 5 interactions:
+pwd                    # Still in right place?
+git diff --name-only   # What have I changed?
+npm test              # Still working?
+```
+
+### Search-First Development
+```bash
+# Before creating ANY new code:
+grep -r "functionName" . --exclude-dir=node_modules
+find . -name "*similar*" -type f
+git log --oneline | grep -i "feature"
+
+# Only create new if you can explain why existing won't work
+```
+
+### Complexity Prevention
+
+#### Size Limits
+- Functions: 30 lines max
+- Files: 200 lines max
+- Classes: 5 public methods max
+- Commits: Small and frequent (every 15-30 min)
+
+When you hit limits → STOP and decompose
+
+### Scope Creep Prevention
+When tempted to add "improvements":
+```
+STOP. 
+1. Complete current task
+2. Document improvement separately
+3. Get approval before implementing
+```
+
+---
+
+## 🧪 Testing Strategy
+
+### Test Categories
+**Unit Tests**: Fast, isolated, no external dependencies  
+**Integration Tests**: Component interactions, may use test DB  
+**E2E Tests**: Full workflow validation  
+**Shell Tests**: BATS for bash scripts (if applicable)
+
+### Testing Rules
+1. **Write tests first** when fixing bugs
+2. **Write tests during** feature development
+3. **Never skip tests** to "save time"
+4. **Each commit** must have passing tests
+
+### Test Structure
+```javascript
+// JavaScript/TypeScript
+describe('Component', () => {
+  it('should handle normal case', () => {
+    // Arrange
+    // Act
+    // Assert
+  });
+  
+  it('should handle edge case', () => {});
+  it('should handle error case', () => {});
+});
+```
+
 ```python
-# Prefer this (vectorized)
-df['result'] = df['values'].apply(complex_transform)
-
-# Over this (iterative)
-results = []
-for value in df['values']:
-    results.append(complex_transform(value))
-df['result'] = results
+# Python
+def test_normal_case():
+    # Arrange
+    # Act  
+    # Assert
+    
+def test_edge_case():
+    pass
+    
+def test_error_case():
+    pass
 ```
 
-**Readability priority for:**
-- Configuration and setup code
-- Test fixtures and helpers
-- One-time migration scripts
-- Documentation examples
+---
 
-## Generative AI Integration Patterns
-- **LLM Client Management**: Async clients with connection pooling
-- **Prompt Engineering**: Template-based prompts with pydantic validation
-- **Response Processing**: Structured outputs with fallback parsing
-- **Rate Limiting**: Implement backoff and retry logic
-- **Cost Optimization**: Token counting, response caching
-- **Monitoring**: Track usage, latency, and error rates
+## 💻 Language-Specific Patterns
 
+### JavaScript/TypeScript
+```javascript
+// Prefer async/await over callbacks
+✅ const data = await fetchData();
+❌ fetchData().then(data => {});
+
+// Use optional chaining
+✅ const value = obj?.nested?.value ?? defaultValue;
+❌ const value = obj && obj.nested && obj.nested.value || defaultValue;
+
+// Explicit types in TypeScript
+✅ function process(data: string[]): Promise<Result>
+❌ function process(data): any
+```
+
+### Python
 ```python
-# Example pattern
-class LLMClient:
-    def __init__(self, model: str, max_retries: int = 3):
-        self.client = httpx.AsyncClient()
-        self.model = model
-        self.max_retries = max_retries
-    
-    async def generate(self, prompt: PromptTemplate) -> ParsedResponse:
-        # Implementation with retries, validation, monitoring
-        pass
+# Use type hints
+✅ def process(data: list[str]) -> dict[str, Any]:
+❌ def process(data):
+
+# Prefer pathlib over os.path
+✅ from pathlib import Path
+❌ import os.path
+
+# Use context managers
+✅ with open('file.txt') as f:
+❌ f = open('file.txt')
 ```
 
-## Development Workflow & Git Strategy
-1. **Discovery**: Analyze existing project structure and requirements
-2. **Planning**: Define interfaces and data models first
-3. **Implementation**: Small, isolated changes with frequent commits
-4. **Testing**: Write comprehensive unit tests, focused integration tests
-5. **Integration**: Wire up external dependencies
-6. **PR Preparation**: Each PR should contain a single feature/fix + tests + docs as a complete unit
+### Bash
+```bash
+# Always use strict mode
+set -euo pipefail
 
-**Commit Strategy:**
-- Small, focused commits that build incrementally during development
-- Each commit should pass tests and maintain working state
-- Descriptive commit messages explaining the "why"
-- Commit often to preserve development history
-- **Squash commits before merging** to maintain clean project history
-- **NEVER reference Claude as co-author in commits**
+# Quote variables
+✅ echo "${VAR}"
+❌ echo $VAR
 
-**Pull Request Structure:**
-- Single feature or bug fix per PR
-- Include unit and integration tests
-- Update documentation (README, docstrings, etc.)
-- Ensure all tests pass and code quality checks succeed
-- **Squash and merge** to keep main branch history clean
-- **NEVER reference Claude as co-author in PRs or code comments**
-
-**Code Quality & Design Standards:**
-- **Design Patterns**: Apply appropriate patterns (Factory, Strategy, Observer, etc.) for cleaner code organization
-- **Testability**: Structure code to enable easy unit testing with clear separation of concerns
-- **Error Handling**: Context-rich exceptions, graceful degradation
-- **Logging**: Structured logging with correlation IDs
-- **Typing**: Full type hints with pydantic models for data validation
-- **Documentation**: Google-style docstrings for mkdocstrings compatibility
-
-**Docstring Standards for mkdocstrings:**
-```python
-def process_data(data: List[Dict], config: ProcessingConfig) -> ProcessedResult:
-    """Process input data according to configuration.
-    
-    Args:
-        data: List of data dictionaries to process
-        config: Processing configuration parameters
-        
-    Returns:
-        Processed result with metadata and statistics
-        
-    Raises:
-        ProcessingError: When data validation fails
-        ConfigurationError: When config is invalid
-        
-    Examples:
-        >>> config = ProcessingConfig(batch_size=100)
-        >>> result = process_data([{"id": 1}], config)
-        >>> result.success
-        True
-    """
+# Check commands exist
+✅ command -v git >/dev/null 2>&1 || { echo "git required"; exit 1; }
+❌ git status  # Might not exist
 ```
 
-**Testing Strategy:**
-- **High Unit Test Coverage**: Focus on business logic, edge cases, error conditions
-- **Clear Test Categories**: 
-  - Unit tests: Fast, isolated, no external dependencies
-  - Integration tests: Test component interactions, external services
-  - End-to-end tests: Full workflow validation
-  - Shell script tests: BATS-core for bash scripts, ShellCheck for static analysis
-- **Test Structure**: Arrange-Act-Assert pattern with descriptive test names
-- **Edge Cases**: Explicitly test boundary conditions, error states, and unusual inputs
-- **Mocking**: Use dependency injection to enable easy mocking of external services
+---
 
-**Multi-Version Testing:**
-- Use tox for standard multi-Python version testing
-- Consider nox for complex environment matrices or custom test scenarios
-- Test against minimum and maximum supported versions
+## 🔄 Git Workflow
 
-## Architecture Patterns by Project Type
+### Commit Strategy
+```bash
+# Frequent small commits during development
+git add -p  # Stage selectively
+git commit -m "Add user validation"
+git commit -m "Add user validation tests"
+git commit -m "Fix edge case in validation"
 
-**CLI Tools:**
-- Simple command structure with typer
-- Rich output formatting
-- Configuration via files + environment variables
-
-**Web APIs:**
-- FastAPI with automatic OpenAPI docs
-- Pydantic models for request/response validation
-- Middleware for logging, metrics, auth
-- Async handlers for I/O operations
-
-**ML Projects:**
-- Separate training, evaluation, and inference codebases
-- Feature stores for shared preprocessing
-- Model registry with versioning
-- Monitoring for drift and performance
-
-**Full-Stack Applications:**
-- Clear API boundaries between frontend/backend
-- Shared type definitions (TypeScript interfaces)
-- Docker composition for development environment
-
-## Environment & Deployment
-- **Package Management**: uv for dependency resolution and virtual environments
-- **Task Automation**: Makefiles for common development workflows
-- **GitHub Integration**: 
-  - Use existing issue/PR templates in `.github/templates/`
-  - Follow established workflows in `.github/workflows/`
-  - Leverage GitHub Actions for CI/CD automation
-- **Development**: docker-compose with hot reload
-- **Dependencies**: uv.lock files for reproducible environments
-- **Environment Variables**: .env for local, parameter store for production
-- **Health Checks**: Implement proper health endpoints
-- **Observability**: OpenTelemetry for metrics, structured logs
-
-## Documentation Strategy
-- **Primary Tool**: MkDocs + mkdocstrings for comprehensive documentation
-- **Structure**: Follow Diátaxis framework (Tutorials, How-to Guides, Reference, Explanation)
-- **API Documentation**: Auto-generated from docstrings using mkdocstrings
-- **Narrative Documentation**: Written in Markdown for tutorials and guides
-- **Live Preview**: Use `mkdocs serve` for real-time documentation updates
-- **Theme**: Material for MkDocs for professional appearance
-- **Deployment**: Automated via GitHub Actions to GitHub Pages or similar
-
-**Documentation Configuration**:
-```yaml
-# mkdocs.yml
-site_name: Project Name
-theme:
-  name: material
-  features:
-    - navigation.tabs
-    - navigation.sections
-    - toc.integrate
-    - search.suggest
-    - search.highlight
-
-plugins:
-  - search
-  - mkdocstrings:
-      handlers:
-        python:
-          options:
-            docstring_style: google
-            show_source: true
-            show_root_heading: true
-            merge_init_into_class: true
-
-nav:
-  - Home: index.md
-  - Getting Started: getting-started.md
-  - API Reference: reference/
-  - How-to Guides: guides/
-  - Changelog: changelog.md
+# Each commit should:
+- Be focused on one change
+- Include its tests
+- Leave code in working state
+- Have clear message explaining "why"
 ```
 
-## Implementation Guidelines
-
-**Python Development:**
-- **Design Patterns**: Use appropriate patterns (Dependency Injection, Factory, Strategy, Observer) for maintainable code
-- **Composition over Inheritance**: Favor composition for flexibility
-- **Dependency Injection**: Constructor injection for testability
-- **Testable Architecture**: Structure code to enable easy unit testing
-- **Input Validation**: Validate at system boundaries with pydantic
-- **External Services**: Implement circuit breakers and retries
-- **Caching**: Cache expensive operations (Redis, in-memory)
-- **Security**: Follow least privilege for integrations
-- **Resilience**: Graceful degradation for non-critical features
-- **Immutability**: Use immutable data structures for shared state
-
-**Example Testable Structure:**
-```python
-# Domain logic - easily testable
-class OrderProcessor:
-    def __init__(self, payment_service: PaymentService, inventory_service: InventoryService):
-        self.payment_service = payment_service
-        self.inventory_service = inventory_service
-    
-    def process_order(self, order: Order) -> OrderResult:
-        # Pure business logic, easy to unit test
-        pass
-
-# Application service - integration testing
-class OrderHandler:
-    def __init__(self, processor: OrderProcessor):
-        self.processor = processor
-    
-    async def handle_order_request(self, request: OrderRequest) -> OrderResponse:
-        # Orchestration logic, integration testing
-        pass
+### Commit Messages
 ```
+✅ Add user email validation with regex
+✅ Fix null pointer in payment processor
+✅ Refactor order service for testability
+
+❌ Update code
+❌ Fix bug
+❌ WIP
+```
+
+**NEVER reference Claude in commits or code**
+
+---
+
+## 🛡️ Quality Gates
+
+### Cannot Start Coding Until
+1. ✅ Project discovery complete
+2. ✅ Task defined in writing
+3. ✅ Existing code searched
+4. ✅ Test approach planned
+
+### Must Stop and Review If
+- File exceeds 200 lines
+- Function exceeds 30 lines  
+- Tests start failing
+- Scope expanding
+- Can't explain in one sentence
+
+### Cannot Commit Until
+1. ✅ Tests pass
+2. ✅ Lint passes (use project's linter)
+3. ✅ No temp files
+4. ✅ Changes reviewed
+5. ✅ Scope verified
+
+---
+
+## 🔍 Verification Commands
+
+### Universal Checks
+```bash
+# Context
+pwd
+git status
+git diff --staged
+
+# Find test command
+npm test 2>/dev/null || yarn test 2>/dev/null || pytest 2>/dev/null || go test ./... 2>/dev/null
+
+# Find lint command  
+npm run lint 2>/dev/null || ruff check 2>/dev/null || golangci-lint run 2>/dev/null
+
+# Clean workspace
+find . -name "*.tmp" -o -name "*.bak" -o -name ".DS_Store"
+```
+
+---
+
+## 🔄 Recovery Procedures
+
+### When Lost in Codebase
+```bash
+# STOP and reorient
+pwd
+git status
+git diff
+# Reread task definition
+# Confirm next action
+```
+
+### When Tests Fail
+```bash
+# STOP and isolate
+git diff HEAD  # What changed?
+git stash      # Save work
+git checkout HEAD~1  # Go to last working state
+# Apply changes incrementally
+```
+
+### When Overengineering
+1. Comment out abstractions
+2. Write direct implementation
+3. Verify it works
+4. Only add complexity if truly needed
+
+---
+
+## 📝 Communication Templates
+
+### Complexity Check
+```
+⚠️ COMPLEXITY CHECK
+
+Task becoming complex:
+- Files to modify: [count]
+- Lines of code: [estimate]
+
+Recommendation: Decompose
+Proceeding with simplest approach.
+```
+
+### Scope Creep Alert
+```
+⚠️ SCOPE CREEP DETECTED
+
+Original: [requirement]
+Found: [additional work]
+
+Completing original only.
+Additional work noted for separate task.
+```
+
+---
+
+## 🚨 Red Flags - Stop Immediately
+
+### Phrases That Signal Problems
+- "Let me create a base class"
+- "I'll implement all endpoints first"
+- "While I'm here, I'll also..."
+- "I'll fix the tests later"
+- "This might be useful"
+
+### Actions That Signal Problems
+- Creating new files without searching
+- Adding abstractions on first implementation
+- Working on multiple tasks
+- Skipping tests
+- Refactoring unrelated code
+
+---
+
+## Daily Workflow
+
+### Session Start
+```bash
+# 1. Project discovery
+pwd
+cat package.json 2>/dev/null || cat pyproject.toml 2>/dev/null
+git pull
+git status
+
+# 2. Verify working state  
+npm test 2>/dev/null || pytest 2>/dev/null
+
+# 3. Review task
+# 4. Search codebase
+```
+
+### During Development
+- Commit every 15-30 minutes
+- Test after every function
+- Checkpoint every 5 steps
+- Stay on task
+
+### Session End
+```bash
+# Clean up
+git status
+npm test  # Or appropriate test command
+git add -A && git commit -m "WIP: [description]" || git stash
+# Document progress
+```
+
+---
+
+## Quick Reference
+
+### Size Limits
+| Item | Max Size | Action if Exceeded |
+|------|----------|-------------------|
+| Function | 30 lines | Extract helper functions |
+| File | 200 lines | Split into modules |
+| Class | 5 methods | Decompose responsibility |
+| Task | 2-4 hours | Break into subtasks |
+| Commit | 30 minutes | Commit more frequently |
+
+### Commands to Run Constantly
+```bash
+pwd                    # Where am I?
+git status            # What changed?
+[test command]        # What broke?
+git diff              # What exactly changed?
+```
+
+---
+
+## Remember
+
+**Honor existing patterns.** When in Rome, do as the Romans do.
+
+**Build boring code that works.** Clever code is a bug waiting to happen.
+
+**Every task is a contract.** Define it, execute it, complete it.
+
+**Small commits win.** Easier to review, easier to revert.
+
+**When in doubt, grep it out.** Search before you create.
+
+---
+
+*This guide is your guardrail. When something feels wrong, it probably is. Stop and check this guide.*
